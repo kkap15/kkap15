@@ -1,208 +1,86 @@
-# Distributed Order Management Platform
+# Hi, I'm Kanishka 👋
 
-An event-driven microservices application built with .NET 10, Angular, Kafka, and Auth0 — demonstrating async service communication, the transactional outbox pattern, and distributed systems design.
+Full-stack software engineer based in Melbourne, Australia. I work across **Angular, .NET, and microservices** — most recently building **AI / RAG systems** on Azure.
 
-**Repo:** [github.com/kkap15/DistributedOrderManagementPlatform](https://github.com/kkap15/DistributedOrderManagementPlatform)
+I spent 4+ years at **Agilent Technologies** as a full-stack engineer, owning compliance-sensitive backend components and contributing to a micro-frontend platform. Outside of work, I build things to learn things — usually distributed systems, sometimes blockchains, lately a lot of AI engineering.
 
----
-
-## Architecture
-
-```
-Angular Frontend (Auth0 popup login)
-        │
-        ▼
-API Gateway :5002  (JWT validation → forwards Bearer token)
-        │
-        ├──▶ UserService  :5003  (Auth0 upsert, user profile)
-        │
-        └──▶ OrderService :5000  (order creation, status updates)
-                  │
-                  │ publishes order.created
-                  ▼
-           ┌─────────────┐
-           │    Kafka    │  (KRaft mode, no Zookeeper)
-           │   Broker    │
-           └──────┬──────┘
-                  │ consumes order.created
-                  ▼
-        PaymentService :5001  (payment processing)
-                  │
-                  │ publishes order.paid
-                  ▼
-           ┌─────────────┐
-           │    Kafka    │
-           └──────┬──────┘
-                  │ consumes order.paid
-                  ▼
-        OrderService  (updates order status → Paid/Failed)
-```
+🔭 **Currently open to new roles** — distributed systems, platform engineering, or AI-augmented application work in Melbourne. [Get in touch.](mailto:kapoor.kanishka@gmail.com)
 
 ---
 
-## Event Flow
+## 🚀 Featured Projects
 
-```
-1. POST /api/order/create
-2. OrderService saves order (status: Pending)
-3. OrderService publishes OrderCreatedEvent → order.created
-4. PaymentService consumes order.created
-5. PaymentService creates payment record
-6. PaymentService publishes PaymentProcessedEvent → order.paid
-7. OrderService consumes order.paid
-8. OrderService updates order status → Paid or Failed
-```
+### [AskDotNet](https://github.com/kkap15/AskDotNet) — Production RAG Assistant for .NET Docs
+A live RAG chatbot grounded on Microsoft Learn C# documentation. Ask it a question in natural language and it streams back a grounded answer with citations.
 
----
+**→ Try it live:** [askdotnet.vercel.app](https://askdotnet.vercel.app)
 
-## Tech Stack
+`.NET 10` · `React 19` · `Azure OpenAI` · `PostgreSQL + pgvector` · `Auth0` · `Azure Container Apps`
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Angular 21, RxJS, Auth0 Angular SDK |
-| API Gateway | ASP.NET Core, JWT Bearer |
-| Services | .NET 10, ASP.NET Core Web API |
-| Messaging | Apache Kafka (KRaft mode) |
-| Kafka Client | Confluent.Kafka |
-| Persistence | Entity Framework Core, SQLite |
-| Resilience | Polly v8 (retry + circuit breaker) |
-| Auth | Auth0 (OIDC / JWT) |
-| Containers | Docker, Docker Compose |
-| Kafka UI | Provectus Kafka UI |
+**Highlights:**
+- Structure-aware chunking via Markdig AST walker at H2/H3 heading boundaries
+- pgvector HNSW cosine-similarity retrieval, queried via raw Npgsql
+- `IAsyncEnumerable<string>` token streaming end-to-end → SSE → React `ReadableStream`
+- LLM-as-judge evaluation suite scoring retrieval recall and answer quality
 
 ---
 
-## Project Structure
+### [MiniChain](https://github.com/kkap15/Blockchain-csharp) — Blockchain from Scratch in C#
+A minimal blockchain built from first principles. Block hashing, Proof-of-Work mining, ECDSA-signed transactions, a mempool, P2P networking, and longest-chain consensus — all in C#.
 
-```
-DistributedOrderManagementPlatform/
-├── Backend/
-│   ├── Contracts/              # Shared event records + messaging interfaces
-│   │   ├── Events/
-│   │   │   ├── OrderCreatedEvent.cs
-│   │   │   └── PaymentProcessedEvent.cs
-│   │   ├── Messaging/
-│   │   │   ├── IEventPublisher.cs
-│   │   │   └── IEventConsumer.cs
-│   │   └── Topics.cs
-│   ├── Infrastructure/         # Kafka producer/consumer implementations
-│   │   ├── Messaging/
-│   │   │   ├── KafkaEventPublisher.cs
-│   │   │   └── KafkaConsumerBase.cs
-│   │   └── Extensions/
-│   │       └── KafkaServiceExtensions.cs
-│   ├── OrderService/           # Order domain
-│   │   ├── Messaging/PaymentProcessedConsumer.cs
-│   │   └── Workers/OrderConsumerWorker.cs
-│   ├── PaymentService/         # Payment domain
-│   │   ├── Messaging/OrderCreatedConsumer.cs
-│   │   └── Workers/PaymentConsumerWorker.cs
-│   ├── ApiGateway/
-│   └── UserService/
-├── Frontend/angular-app/
-└── docker-compose.yml
-```
+`C# / .NET 10` · `Blazor Server` · `EF Core` · `SQLite` · `Auth0` · `Docker`
+
+**Highlights:**
+- Deterministic canonical serialization (`CultureInfo.InvariantCulture`) for cross-machine hash consistency
+- Merkle tree committed into block hashes — any tampering breaks chain validity
+- 90%+ test coverage across Block, Blockchain, Miner, Wallet, Mempool, and Node components
+- Interface-driven core with dependency injection (test miners run at zero difficulty)
 
 ---
 
-## Key Design Decisions
+### [MFE Platform](https://github.com/kkap15/MFEPlatform) — Dynamic Micro-Frontend Host
+An Angular 21 shell that loads registered remote apps at runtime via Native Federation — no host redeploy required to onboard a new MFE.
 
-**Event-driven async communication** — services communicate via Kafka events rather than direct HTTP calls. `OrderService` and `PaymentService` are fully decoupled — neither knows about the other's implementation.
+`Angular 21` · `.NET 10` · `Native Federation` · `Auth0` · `EF Core` · `SQLite`
 
-**`KafkaConsumerBase<TEvent>`** — abstract generic base class handles all Kafka plumbing (subscribe, consume loop, deserialization, offset commit). Concrete consumers only implement `HandleAsync(TEvent event)`.
-
-**Scope-per-message pattern** — `IServiceScopeFactory` creates a fresh DI scope for each message, giving each `HandleAsync` call its own EF Core `DbContext`. Prevents memory leaks and tracking conflicts in long-running consumers.
-
-**`IEventPublisher` abstraction** — services depend on the interface, not Kafka directly. Swappable to Azure Service Bus without changing service code.
-
-**Manual offset commit** — `EnableAutoCommit = false` ensures offsets are committed only after `HandleAsync` succeeds. Failed messages are reprocessed on restart.
-
-**Exactly-once producer semantics** — `Acks = Acks.All` + `EnableIdempotence = true` prevents duplicate events even under retry conditions.
+**Highlights:**
+- .NET 10 Web API registry with full CRUD + conflict detection (HTTP 409)
+- Dynamic route generation via `loadRemoteModule()` + `router.resetConfig()`
+- Auth0 PKCE flow end-to-end with an `AuthHttpInterceptor` for outbound API calls
 
 ---
 
-## Services & Ports
+### [Distributed Order Management Platform](https://github.com/kkap15/DistributedOrderManagementPlatform)
+A four-service distributed system — API Gateway, OrderService, PaymentService, UserService — with Polly resilience and end-to-end Auth0 JWT propagation.
 
-| Service | Port | Responsibility |
-|---------|------|----------------|
-| ApiGateway | 5002 | JWT validation, request routing |
-| OrderService | 5010 (host) / 5000 (container) | Order creation, status updates |
-| PaymentService | 5001 | Payment processing |
-| UserService | 5003 | User registration and profile |
-| Kafka | 9092 | Event broker |
-| Kafka UI | 8080 | Topic/message browser |
+`Angular 21` · `.NET 10` · `Auth0` · `Polly v8` · `EF Core` · `SQLite` · `Docker Compose`
 
----
-
-## Setup & Run
-
-### Prerequisites
-
-- Docker Desktop
-
-### One-command startup
-
-```bash
-git clone https://github.com/kkap15/DistributedOrderManagementPlatform.git
-cd DistributedOrderManagementPlatform
-docker compose up --build
-```
-
-| URL | Service |
-|-----|---------|
-| http://localhost:4200 | Angular frontend |
-| http://localhost:5002 | API Gateway |
-| http://localhost:8080 | Kafka UI |
-
-### Test the event flow
-
-```bash
-# Create an order
-curl -X POST http://localhost:5010/api/order/create \
-  -H "Content-Type: application/json" \
-  -d '{"userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "totalAmount": 99.99}'
-
-# Response: { "orderId": "...", "status": "Pending" }
-# Watch logs — order status updates to "Paid" within seconds
-```
-
-### Auth0 Configuration
-
-| Setting | Value |
-|---------|-------|
-| Allowed Callback URLs | `http://localhost:4200` |
-| Allowed Logout URLs | `http://localhost:4200` |
-| Allowed Web Origins | `http://localhost:4200` |
+**Highlights:**
+- One-command startup via Docker Compose with persistent SQLite volumes
+- Polly v8 `ResiliencePipelineBuilder` — retry + circuit breaker on cross-service calls
+- Gateway forwards raw Bearer tokens; auto user-registration on first login from JWT claims
 
 ---
 
-## Key Concepts Demonstrated
+## 🛠️ Tech I Work With
 
-- **Event-driven architecture** — async service decoupling via Kafka topics
-- **Producer/Consumer pattern** — `KafkaConsumerBase<TEvent>` generic base with `HandleAsync`
-- **Dependency Inversion** — `IEventPublisher`/`IEventConsumer` abstractions in shared `Contracts` project
-- **Scope-per-message** — fresh EF Core `DbContext` per consumed message via `IServiceScopeFactory`
-- **Exactly-once semantics** — `Acks.All` + `EnableIdempotence` on producer
-- **At-least-once delivery** — manual offset commit after successful processing
-- **API Gateway pattern** — JWT validation and token passthrough to downstream services
-- **Repository pattern** — EF Core with SQLite, scoped per request
-- **Polly resilience** — retry + circuit breaker on HTTP clients
-- **KRaft Kafka** — Kafka without Zookeeper, single-node dev cluster
+**Languages:** TypeScript · C# · SQL
+**Frameworks:** .NET 10 · ASP.NET Core · Angular · React
+**AI / RAG:** Azure OpenAI · pgvector · embedding pipelines · LLM-as-judge eval
+**Cloud:** Azure (Container Apps, Container Registry) · AWS (EC2, S3) · Vercel
+**DevOps:** GitHub Actions · Docker · Docker Compose · Kubernetes
+**Testing:** Reqnroll (BDD) · Playwright · xUnit · FluentAssertions
+**Auth:** Auth0 · JWT · PKCE flow
+**Architecture:** Microservices · Micro-Frontends (Module Federation, Native Federation) · SOLID · Distributed Systems
 
 ---
 
-## Roadmap
+## 📫 Get in touch
 
-- [x] Docker + docker-compose one-command startup
-- [x] Kafka async messaging (order.created → order.paid)
-- [x] Contracts + Infrastructure shared projects
-- [x] Scope-per-message EF Core pattern
-- [ ] Outbox pattern — guaranteed message delivery
-- [ ] InventoryService — consumes order.paid, publishes order.shipped
-- [ ] NotificationService — consumes all events
-- [ ] OpenTelemetry distributed tracing
-- [ ] Azure deployment
+- ✉️ [kapoor.kanishka@gmail.com](mailto:kapoor.kanishka@gmail.com)
+- 💼 [LinkedIn](https://linkedin.com/in/kanishkakapoor15)
+- 🌏 Melbourne, Australia
 
 ---
 
-**Author:** Kanishka Kapoor · [github.com/kkap15](https://github.com/kkap15)
+<sub>*Currently exploring roles where I can keep building distributed systems and AI-augmented applications. If your team is hiring and any of the above resonates — I'd love to hear from you.*</sub>
