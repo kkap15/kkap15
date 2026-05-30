@@ -1,6 +1,6 @@
 # Hi, I'm Kanishka 👋
 
-Full-stack software engineer based in Melbourne, Australia. I work across **Angular, .NET, and microservices** — most recently building **AI / RAG systems** on Azure.
+Full-stack software engineer based in Melbourne, Australia. I work across **Angular, .NET, and microservices** — most recently building **AI / RAG systems** and **agentic applications** on Azure.
 
 I spent 4+ years at **Agilent Technologies** as a full-stack engineer, owning compliance-sensitive backend components and contributing to a micro-frontend platform. Outside of work, I build things to learn things — usually distributed systems, sometimes blockchains, lately a lot of AI engineering.
 
@@ -9,6 +9,23 @@ I spent 4+ years at **Agilent Technologies** as a full-stack engineer, owning co
 ---
 
 ## 🚀 Featured Projects
+
+### [FinanceAI](https://github.com/kkap15/financeai) — AI-Powered Personal Finance SaaS
+A production SaaS with dual bank provider support (Australian banks via Basiq CDR, international via Plaid), an agentic finance assistant, Stripe subscription billing, and full Azure + Vercel deployment.
+
+**→ Try it live:** [financeai.moviegasm.xyz](https://financeai.moviegasm.xyz)
+
+`Next.js 14` · `.NET 10` · `Semantic Kernel` · `Azure OpenAI` · `Plaid` · `Basiq` · `Stripe` · `PostgreSQL + pgvector` · `Auth0` · `Azure Container Apps` · `Vercel`
+
+**Highlights:**
+- Agentic finance assistant using Semantic Kernel AutoInvoke with 6 custom tools (spending summaries, budget management, transaction search, month comparisons) — streaming token-by-token via SSE
+- Dual bank provider architecture: Australian banks via Basiq CDR, international banks via Plaid — unified behind `IBankService` interface with `BankServiceBase` abstract class and `BankServiceFactory`
+- Semantic transaction search using Azure OpenAI `text-embedding-3-small` stored in pgvector HNSW index
+- Stripe subscription billing with Checkout, Customer Portal, and webhook lifecycle handling — Free/Pro feature gating enforced at API layer via `[RequiresPro]` action filter
+- Production observability with OpenTelemetry distributed tracing, Serilog structured logging, and Azure Application Insights
+- PWA support with offline capability and Add to Home Screen on iOS/Android
+
+---
 
 ### [AskDotNet](https://github.com/kkap15/AskDotNet) — Production RAG Assistant for .NET Docs
 A live RAG chatbot grounded on Microsoft Learn C# documentation. Ask it a question in natural language and it streams back a grounded answer with citations.
@@ -22,6 +39,21 @@ A live RAG chatbot grounded on Microsoft Learn C# documentation. Ask it a questi
 - pgvector HNSW cosine-similarity retrieval, queried via raw Npgsql
 - `IAsyncEnumerable<string>` token streaming end-to-end → SSE → React `ReadableStream`
 - LLM-as-judge evaluation suite scoring retrieval recall and answer quality
+
+---
+
+### [Distributed Order Management Platform](https://github.com/kkap15/DistributedOrderManagementPlatform) — Event-Driven Microservices
+A five-service event-driven system with async decoupling via Kafka, the transactional outbox pattern, and real-time SignalR notifications.
+
+`Angular 21` · `.NET 10` · `Apache Kafka (KRaft)` · `Confluent.Kafka` · `SignalR` · `Polly v8` · `EF Core` · `SQLite` · `Docker Compose` · `GitHub Actions`
+
+**Highlights:**
+- Transactional outbox pattern in OrderService — order and OutboxMessage written atomically, background OutboxProcessor publishes to Kafka guaranteeing at-least-once delivery
+- `KafkaConsumerBase<TEvent>` abstract generic base — scope-per-message pattern via `IServiceScopeFactory` for clean EF Core DbContext lifecycle
+- `IEventPublisher` / `IEventConsumer` abstractions in shared Contracts project — swappable to any message broker without changing service code
+- NotificationService consumes `payment.processed` and pushes real-time updates to Angular via SignalR
+- Exactly-once producer semantics via `Acks.All` + `EnableIdempotence = true`
+- CI/CD via GitHub Actions — builds and publishes all service images to GHCR on merge to main
 
 ---
 
@@ -50,28 +82,18 @@ An Angular 21 shell that loads registered remote apps at runtime via Native Fede
 
 ---
 
-### [Distributed Order Management Platform](https://github.com/kkap15/DistributedOrderManagementPlatform)
-A four-service distributed system — API Gateway, OrderService, PaymentService, UserService — with Polly resilience and end-to-end Auth0 JWT propagation.
-
-`Angular 21` · `.NET 10` · `Auth0` · `Polly v8` · `EF Core` · `SQLite` · `Docker Compose`
-
-**Highlights:**
-- One-command startup via Docker Compose with persistent SQLite volumes
-- Polly v8 `ResiliencePipelineBuilder` — retry + circuit breaker on cross-service calls
-- Gateway forwards raw Bearer tokens; auto user-registration on first login from JWT claims
-
----
-
 ## 🛠️ Tech I Work With
 
-**Languages:** TypeScript · C# · SQL
-**Frameworks:** .NET 10 · ASP.NET Core · Angular · React
-**AI / RAG:** Azure OpenAI · pgvector · embedding pipelines · LLM-as-judge eval
-**Cloud:** Azure (Container Apps, Container Registry) · AWS (EC2, S3) · Vercel
-**DevOps:** GitHub Actions · Docker · Docker Compose · Kubernetes
-**Testing:** Reqnroll (BDD) · Playwright · xUnit · FluentAssertions
-**Auth:** Auth0 · JWT · PKCE flow
-**Architecture:** Microservices · Micro-Frontends (Module Federation, Native Federation) · SOLID · Distributed Systems
+**Languages:** TypeScript · C# · JavaScript · Java · C · C++  
+**Frameworks:** .NET 10 · ASP.NET Core · Angular · React · Next.js 14  
+**AI / Agentic:** Azure OpenAI · Semantic Kernel · RAG pipelines · pgvector · function calling · AutoInvoke · LLM-as-judge eval  
+**Messaging:** Apache Kafka (KRaft) · Confluent.Kafka · transactional outbox pattern  
+**Integrations:** Stripe · Plaid · Basiq (Australian CDR)  
+**Cloud:** Azure (Container Apps, Container Registry, PostgreSQL) · AWS (EC2, S3) · Vercel  
+**DevOps:** GitHub Actions · Docker · Docker Compose · Kubernetes · OpenTelemetry · Serilog  
+**Testing:** Reqnroll (BDD) · Playwright · xUnit · FluentAssertions  
+**Auth:** Auth0 · JWT · PKCE flow  
+**Architecture:** Microservices · Event-Driven · Micro-Frontends · Modular Monolith · SOLID · Distributed Systems · Outbox Pattern  
 
 ---
 
